@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <exception>
 
 /*
 	存放 自己重新封装的一些轮子
@@ -16,7 +17,8 @@ public:
 	{
 		if(pthread_mutex_init(&m_mutex, NULL) != 0)
 		{
-			报错:pthread_mutex_init failed;
+			printf("Error: Mutex::Mutex: pthread_mutex_init failed");
+			throw std::exception();
 		}
 	}
 	~Mutex()
@@ -49,14 +51,16 @@ public:
 	{
 		if(sem_init(&m_sem, 0, 0) != 0)
 		{
-			报错:sem_init failed;
+			printf("Error: Sem::Sem: sem_init failed");
+			throw std::exception();
 		}
 	}
 	Sem(int num)
 	{
 		if(sem_init(&m_sem, 0, num) != 0)
 		{
-			报错:sem_init failed;
+			printf("Error: Sem::Sem: sem_init failed");
+			throw std::exception();
 		}
 	}
 	~Sem()
@@ -84,7 +88,8 @@ public:
 	{
 		if(pthread_cond_init(&m_cond, NULL) != 0)
 		{
-			报错:pthread_cond_init failed;
+			printf("Error: Cond::Cond: pthread_cond_init failed");
+			throw std::exception();
 		}
 	}
 	~Cond()
