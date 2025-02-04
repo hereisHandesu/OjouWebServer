@@ -1,125 +1,54 @@
-In file included from ../threadpool_v1.hpp:8,
-                 from test_threadpool.cpp:2:
-.././util.hpp: In member function ‘bool Cond::wait(pthread_mutex_t*)’:
-.././util.hpp:101:51: error: cannot convert ‘pthread_mutex_t**’ to ‘pthread_mutex_t*’
-  101 |                 return pthread_cond_wait(&m_cond, &mtx) == 0;
-      |                                                   ^~~~
-      |                                                   |
-      |                                                   pthread_mutex_t**
-In file included from /usr/include/x86_64-linux-gnu/c++/12/bits/gthr-default.h:35,
-                 from /usr/include/x86_64-linux-gnu/c++/12/bits/gthr.h:148,
-                 from /usr/include/c++/12/ext/atomicity.h:35,
-                 from /usr/include/c++/12/bits/ios_base.h:39,
-                 from /usr/include/c++/12/ios:42,
-                 from /usr/include/c++/12/ostream:38,
-                 from /usr/include/c++/12/iostream:39,
-                 from test_threadpool.cpp:1:
-/usr/include/pthread.h:1134:59: note:   initializing argument 2 of ‘int pthread_cond_wait(pthread_cond_t*, pthread_mutex_t*)’
- 1134 |                               pthread_mutex_t *__restrict __mutex)
-      |                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
-../threadpool_v1.hpp: At global scope:
-../threadpool_v1.hpp:33:29: error: cannot declare pointer to ‘const T&’
-   33 |         bool push(const T& *request)
-      |                             ^~~~~~~
-../threadpool_v1.hpp:48:22: error: cannot declare pointer to ‘T&’
-   48 |         bool pop(T& *request)
-      |                      ^~~~~~~
-../threadpool_v1.hpp:76:35: error: ‘T’ does not name a type
-   76 |         bool append_request(const T& *request);
-      |                                   ^
-../threadpool_v1.hpp:76:39: error: cannot declare pointer to ‘const int&’
-   76 |         bool append_request(const T& *request);
-      |                                       ^~~~~~~
-../threadpool_v1.hpp:87:9: error: invalid use of template-name ‘SafeQueue’ without an argument list
-   87 |         SafeQueue m_request_queue;      //线程安全的 工作请求队列
-      |         ^~~~~~~~~
-../threadpool_v1.hpp: In constructor ‘ThreadPool::ThreadPool(void (*)(void*), int, int)’:
-../threadpool_v1.hpp:118:94: warning: format ‘%d’ expects a matching ‘int’ argument [-Wformat=]
-  118 |                         printf("Error: ThreadPool::ThreadPool: pthread_create failed when i=%d");
-      |                                                                                             ~^
-      |                                                                                              |
-      |                                                                                              int
-../threadpool_v1.hpp:124:94: warning: format ‘%d’ expects a matching ‘int’ argument [-Wformat=]
-  124 |                         printf("Error: ThreadPool::ThreadPool: pthread_detach failed when i=%d");
-      |                                                                                             ~^
-      |                                                                                              |
-      |                                                                                              int
-../threadpool_v1.hpp: At global scope:
-../threadpool_v1.hpp:133:39: error: ‘T’ does not name a type
-  133 | bool ThreadPool::append_request(const T& *request)
-      |                                       ^
-../threadpool_v1.hpp:133:43: error: cannot declare pointer to ‘const int&’
-  133 | bool ThreadPool::append_request(const T& *request)
-      |                                           ^~~~~~~
-../threadpool_v1.hpp: In member function ‘bool ThreadPool::append_request(const int*)’:
-../threadpool_v1.hpp:135:16: error: ‘m_queue’ was not declared in this scope
-  135 |         return m_queue.push(request);
-      |                ^~~~~~~
-../threadpool_v1.hpp: At global scope:
-../threadpool_v1.hpp:145:6: error: no declaration matches ‘void ThreadPool::run()’
-  145 | void ThreadPool::run()  //每个线程内实际进行的工作
-      |      ^~~~~~~~~~
-../threadpool_v1.hpp:80:14: note: candidate is: ‘void ThreadPool::run()’
-   80 |         void run();
-      |              ^~~
-../threadpool_v1.hpp:71:7: note: ‘class ThreadPool’ defined here
-   71 | class ThreadPool
-      |       ^~~~~~~~~~
 test_threadpool.cpp: In function ‘void ninbu(void*)’:
-test_threadpool.cpp:13:16: error: ‘struct Args’ has no member named ‘p_sum’; did you mean ‘m_p_sum’?
-   13 |         *args->p_sum += args->num*args->num*args->num;
-      |                ^~~~~
-      |                m_p_sum
-test_threadpool.cpp:13:31: error: ‘struct Args’ has no member named ‘num’; did you mean ‘m_num’?
-   13 |         *args->p_sum += args->num*args->num*args->num;
-      |                               ^~~
-      |                               m_num
-test_threadpool.cpp:13:41: error: ‘struct Args’ has no member named ‘num’; did you mean ‘m_num’?
-   13 |         *args->p_sum += args->num*args->num*args->num;
-      |                                         ^~~
-      |                                         m_num
-test_threadpool.cpp:13:51: error: ‘struct Args’ has no member named ‘num’; did you mean ‘m_num’?
-   13 |         *args->p_sum += args->num*args->num*args->num;
-      |                                                   ^~~
-      |                                                   m_num
-test_threadpool.cpp:14:16: error: ‘struct Args’ has no member named ‘p_sum’; did you mean ‘m_p_sum’?
-   14 |         *args->p_sum -= args->num*args->num*args->num;
-      |                ^~~~~
-      |                m_p_sum
-test_threadpool.cpp:14:31: error: ‘struct Args’ has no member named ‘num’; did you mean ‘m_num’?
-   14 |         *args->p_sum -= args->num*args->num*args->num;
-      |                               ^~~
-      |                               m_num
-test_threadpool.cpp:14:41: error: ‘struct Args’ has no member named ‘num’; did you mean ‘m_num’?
-   14 |         *args->p_sum -= args->num*args->num*args->num;
-      |                                         ^~~
-      |                                         m_num
-test_threadpool.cpp:14:51: error: ‘struct Args’ has no member named ‘num’; did you mean ‘m_num’?
-   14 |         *args->p_sum -= args->num*args->num*args->num;
-      |                                                   ^~~
-      |                                                   m_num
+test_threadpool.cpp:27:30: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘pthread_t’ {aka ‘long unsigned int’} [-Wformat=]
+   27 |                 printf("id:%#x - cnt:%d,sum:%d\n", pthread_self(), args->m_cnt, *args->m_p_sum);
+      |                            ~~^                     ~~~~~~~~~~~~~~
+      |                              |                                 |
+      |                              unsigned int                      pthread_t {aka long unsigned int}
+      |                            %#lx
+test_threadpool.cpp:30:30: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘pthread_t’ {aka ‘long unsigned int’} [-Wformat=]
+   30 |                 printf("id:%#x 进来了\n", pthread_self());
+      |                            ~~^            ~~~~~~~~~~~~~~
+      |                              |                        |
+      |                              unsigned int             pthread_t {aka long unsigned int}
+      |                            %#lx
+test_threadpool.cpp:33:21: warning: format ‘%d’ expects argument of type ‘int’, but argument 2 has type ‘pthread_t’ {aka ‘long unsigned int’} [-Wformat=]
+   33 |         printf("id:%d 出去了\n", pthread_self());
+      |                    ~^            ~~~~~~~~~~~~~~
+      |                     |                        |
+      |                     int                      pthread_t {aka long unsigned int}
+      |                    %ld
 test_threadpool.cpp: In function ‘int main()’:
-test_threadpool.cpp:23:35: error: cannot convert ‘Args*’ to ‘const int*’
-   23 |         threadpool.append_request(&args);
-      |                                   ^~~~~
-      |                                   |
-      |                                   Args*
-../threadpool_v1.hpp:133:43: note:   initializing argument 1 of ‘bool ThreadPool::append_request(const int*)’
-  133 | bool ThreadPool::append_request(const T& *request)
-      |                                 ~~~~~~~~~~^~~~~~~
-test_threadpool.cpp:24:35: error: cannot convert ‘Args*’ to ‘const int*’
-   24 |         threadpool.append_request(&args);
-      |                                   ^~~~~
-      |                                   |
-      |                                   Args*
-../threadpool_v1.hpp:133:43: note:   initializing argument 1 of ‘bool ThreadPool::append_request(const int*)’
-  133 | bool ThreadPool::append_request(const T& *request)
-      |                                 ~~~~~~~~~~^~~~~~~
-test_threadpool.cpp:25:35: error: cannot convert ‘Args*’ to ‘const int*’
-   25 |         threadpool.append_request(&args);
-      |                                   ^~~~~
-      |                                   |
-      |                                   Args*
-../threadpool_v1.hpp:133:43: note:   initializing argument 1 of ‘bool ThreadPool::append_request(const int*)’
-  133 | bool ThreadPool::append_request(const T& *request)
-      |                                 ~~~~~~~~~~^~~~~~~
+test_threadpool.cpp:44:32: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘pthread_t’ {aka ‘long unsigned int’} [-Wformat=]
+   44 |         printf("zheshi main: %#x\n", pthread_self());
+      |                              ~~^     ~~~~~~~~~~~~~~
+      |                                |                 |
+      |                                unsigned int      pthread_t {aka long unsigned int}
+      |                              %#lx
+In file included from test_threadpool.cpp:2:
+../threadpool_v1.hpp: In instantiation of ‘ThreadPool<T>::ThreadPool(void (*)(void*), int, int) [with T = Args]’:
+test_threadpool.cpp:42:42:   required from here
+../threadpool_v1.hpp:131:94: warning: format ‘%d’ expects a matching ‘int’ argument [-Wformat=]
+  131 |                         printf("Error: ThreadPool::ThreadPool: pthread_create failed when i=%d");
+      |                                                                                             ~^
+      |                                                                                              |
+      |                                                                                              int
+../threadpool_v1.hpp:137:94: warning: format ‘%d’ expects a matching ‘int’ argument [-Wformat=]
+  137 |                         printf("Error: ThreadPool::ThreadPool: pthread_detach failed when i=%d");
+      |                                                                                             ~^
+      |                                                                                              |
+      |                                                                                              int
+../threadpool_v1.hpp: In instantiation of ‘void ThreadPool<T>::run() [with T = Args]’:
+../threadpool_v1.hpp:157:8:   required from ‘static void* ThreadPool<T>::worker(void*) [with T = Args]’
+../threadpool_v1.hpp:128:20:   required from ‘ThreadPool<T>::ThreadPool(void (*)(void*), int, int) [with T = Args]’
+test_threadpool.cpp:42:42:   required from here
+../threadpool_v1.hpp:167:30: warning: format ‘%x’ expects argument of type ‘unsigned int’, but argument 2 has type ‘pthread_t’ {aka ‘long unsigned int’} [-Wformat=]
+  167 |                 printf("id:%#x\n", pthread_self());
+      |                            ~~^     ~~~~~~~~~~~~~~
+      |                              |                 |
+      |                              unsigned int      pthread_t {aka long unsigned int}
+      |                            %#lx
+../threadpool_v1.hpp:171:38: warning: format ‘%x’ expects a matching ‘unsigned int’ argument [-Wformat=]
+  171 |                         printf("id:%#x damn\n");
+      |                                    ~~^
+      |                                      |
+      |                                      unsigned int

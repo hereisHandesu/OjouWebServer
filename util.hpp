@@ -98,7 +98,7 @@ public:
 	}
 	bool wait(pthread_mutex_t *mtx)
 	{	
-		return pthread_cond_wait(&m_cond, &mtx) == 0;
+		return pthread_cond_wait(&m_cond, mtx) == 0;
 	}
 	bool timedwait(pthread_mutex_t *mtx, struct timespec t)
 	{

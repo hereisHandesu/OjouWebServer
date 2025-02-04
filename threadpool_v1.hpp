@@ -8,7 +8,7 @@
 #include "./util.hpp"
 
 /*
-* v1版本线程池：
+* v1版本线程池：	tested
 	可读性高，基于信号量实现线程同步
 v2版本线程池：
 	性能尽我所能优化至最佳，基于条件变量实现线程同步
@@ -17,20 +17,25 @@ v3版本线程池：
 */
 
 /*	SafeQueue类 - 线程安全的队列	*/
+#define DEFAULT_SAFEQUEUE_MAX_NUM 10000
+
 template <typename T>
 class SafeQueue
 {
 public:
-	SafeQueue(int max_num = 10000)
+	SafeQueue(int max_num = DEFAULT_SAFEQUEUE_MAX_NUM) : m_max_num(max_num) {}
+	~SafeQueue() {};
+	bool change_max_num(int max_num)
 	{
 		if(max_num <= 0)
 		{
-			printf("Error: SafeQueue::SafeQueue: max_num <= 0");
+			printf("Error: SafeQueue::change_max_num: max_num <= 0");
 			throw std::exception();
-		}	
+		}
+		m_max_num = max_num;
+		return true;
 	}
-	~SafeQueue() {};
-	bool push(const T& *request)
+	bool push(T *request)
 	{
 		m_mtx.lock();
 		//我先把空指针检测 放在push里，之后如果出什么问题再试试把空指针判定放在pop里
@@ -45,7 +50,8 @@ public:
 		m_queuestat.post();	//新增一个资源	
 		return true;
 	}
-	bool pop(T& *request)
+	//除非你的T有带指针的拷贝函数，且request原本就指向一个空间，否则你别这么用pop
+	bool pop(T *request)
 	{
 		m_queuestat.wait();	//拿走一个资源
 		m_mtx.lock();
@@ -54,7 +60,8 @@ public:
 			m_mtx.unlock();
 			return false;
 		}
-		request = m_queue.front();
+		T::copy_it(request, m_queue.front());	//用一个浅拷贝，将值拷到request指向的地方
+		//*request = m_queue.front();//错误写法，会让其变成野指针
 		m_queue.pop_front();
 		m_mtx.unlock();
 		return true;
@@ -67,13 +74,14 @@ private:
 	Sem m_queuestat;	//队列内可用资源数量
 };
 
-
+template <typename T>	//放在queue里的任务请求的类型
+//以后用到模板，就得在类后边加个<T>
 class ThreadPool
 {
 public:
-	ThreadPool(void (*task)(void*), int thread_number = 0, int max_request_number = 10000);
+	ThreadPool(void (*task)(void*), int thread_num = 0, int max_request_num = 10000);
 	~ThreadPool();
-	bool append_request(const T& *request);
+	bool append_request(T *request);
 
 private:
 	static void *worker(void *arg);	//单个任务 —— 不用开一个类了！
@@ -83,33 +91,36 @@ private:
 	void (*m_task)(void*);	//每个线程进行的任务
 	void *m_args;			//传入上述m_task的参数
 	pthread_t *m_threads;	//存线程池里所有可用线程的数组
-	int m_thread_number;
-	SafeQueue m_request_queue;	//线程安全的 工作请求队列
-	int m_max_request_number;
+	int m_thread_num;
+	SafeQueue<T> m_request_queue;	//线程安全的 工作请求队列
+	int m_max_request_num;
 	//数据库连接池 *m_sql_conn_pool;	//数据库连接池	
 };
-ThreadPool::ThreadPool(void (*task)(void*), int thread_number, int max_request_number) : m_task(task), m_thread_number(thread_number), m_max_request_number(max_request_number)
+template <typename T>
+ThreadPool<T>::ThreadPool(void (*task)(void*), int thread_num, int max_request_num) : m_task(task), m_thread_num(thread_num), m_max_request_num(max_request_num)
 {
-	if(thread_number == 0)
+	if(thread_num == 0)
 	{
 		//则按照当前服务器的CPU数量来指定线程数量
-		m_thread_number = sysconf(_SC_NPROCESSORS_ONLN);
-		printf("我选择的是: %d\n", m_thread_number);
+		m_thread_num = sysconf(_SC_NPROCESSORS_ONLN)-1;	//因为主线程得去掉一个
+		printf("我选择的是: %d\n", m_thread_num);
 	}
-	else if(thread_number < 0) {
-		printf("Error: ThreadPool::ThreadPool: m_thread_number < 0");
+	else if(thread_num < 0) {
+		printf("Error: ThreadPool::ThreadPool: m_thread_num < 0");
 		throw std::exception();
 	}
+	//修改安全队列的请求容量
+	m_request_queue.change_max_num(m_max_request_num);
 	//保存 需要运行的回调函数
 	m_task = task;	//task函数的参数以request的形式出现并被传入到task中
 	//初始化线程池
-	m_threads = new pthread_t[m_thread_number];
+	m_threads = new pthread_t[m_thread_num];
 	if(!m_threads)
 	{
 		printf("Error: ThreadPool::THreadPool: ThreadPool::m_threads new failed");
 		throw std::exception();	
 	}
-	for(int i = 0; i < m_thread_number; i++)
+	for(int i = 0; i < m_thread_num; i++)
 	{
 		//worker是一个固定的工作
 		if(pthread_create(m_threads + i, NULL, worker, this) != 0)
@@ -126,33 +137,41 @@ ThreadPool::ThreadPool(void (*task)(void*), int thread_number, int max_request_n
 		}
 	}
 }
-ThreadPool::~ThreadPool()
+template <typename T>
+ThreadPool<T>::~ThreadPool()
 {
 	delete[] m_threads;
 }
-bool ThreadPool::append_request(const T& *request)
+template <typename T>
+bool ThreadPool<T>::append_request(T *request)
 {
-	return m_queue.push(request);
+	return m_request_queue.push(request);
 }
 //worker作为一个线程内实际在干的事情，需要指认其自身工作在this线程池，并在worker内运行this->run函数
-void *ThreadPool::worker(void *arg)	//给 pthread_create用的
+template <typename T>
+void *ThreadPool<T>::worker(void *arg)	//给 pthread_create用的
 {
 	ThreadPool *pool = (ThreadPool *)arg;
 	pool->run();
 	return nullptr;	//你都detach了你还要啥返回值呀
 }
 template <typename T>
-void ThreadPool::run()	//每个线程内实际进行的工作
+void ThreadPool<T>::run()	//每个线程内实际进行的工作
 {
-	while(true)
+	//一次出队列就会运行一次task(request)
+	while(true)	//这个while(true)本质是在 清空request_queue，直到queue空了就阻塞
 	{
 		//先从队列中取出一个任务请求
-		T* request = nullptr;
-		if(!m_queue.pop(request))
+		printf("id:%#x\n", pthread_self());	
+		T request;
+		if(!m_request_queue.pop(&request))
+		{
+			printf("id:%#x damn\n");
 			continue;
+		}
 		//解析任务请求，提供服务
 		/*	怎么解析 看实际情况		*/
-		m_task(request);
+		m_task(&request);
 	}
 }
 
